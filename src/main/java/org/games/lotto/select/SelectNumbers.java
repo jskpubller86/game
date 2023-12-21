@@ -12,13 +12,14 @@ public class SelectNumbers extends Context {
      * 로또 번호를 생성한다.
      * @return 로또 번호
      */
-    public int[] selectNumbers(){
+    public int[] selectNumbers() throws Exception{
         PreparedStatement pstmt = null;
         BasicConnection conn = null;
         ResultSet rs = null;
         int[] numbers = null;
 
-        lotto: while (true){
+        while (true){
+            boolean isChecked = false;
             numbers = createNumbers();
             // 번호 검증
             try {
@@ -29,59 +30,73 @@ public class SelectNumbers extends Context {
                 // 번호를 오름차순으로 정렬
                 Arrays.sort(numbers);
 
-                // 검증1 : 기존의 1, 2등 당첨 번호인지 확인
-                String sql = "select count(*) from game.lotto where (number_1=? or bonus=?) and (number_2=? or bonus=?) and (number_3=? or bonus=?) and (number_4=? or bonus=?) and (number_5=? or bonus=?) and (number_6=? or bonus=?)";
-                pstmt = conn.prepareStatement(sql);
-
-                int pos = 1;
-                for (int i = 0; i < numbers.length; i++) {
-                    pstmt.setInt(pos++, numbers[i]);
-                    pstmt.setInt(pos++, numbers[i]);
+                // 검증1: 숫자의 합이 250 이하인가?
+                int temp = 0;
+                for (int num :  numbers){
+                    temp+=num;
+                }
+                if(60 < temp && temp < 210){
+                    isChecked = true;
                 }
 
-                System.out.println("생성된 쿼리문:");
-                System.out.println(pstmt);
-                rs = pstmt.executeQuery();
+                // 검증2 : 기존의 1, 2등 당첨 번호인지 확인
+                if(isChecked){
 
-                // 이전에 있던 번호라면 다시 번호를 생성하고 아니라면 종료한다
-                rs.next();
-                if(rs.getInt(1) > 0){
+                    String sql = "select count(*) from game.lotto where (number_1=? or bonus=?) and (number_2=? or bonus=?) and (number_3=? or bonus=?) and (number_4=? or bonus=?) and (number_5=? or bonus=?) and (number_6=? or bonus=?)";
+                    pstmt = conn.prepareStatement(sql);
+
+                    int pos = 1;
+                    for (int i = 0; i < numbers.length; i++) {
+                        pstmt.setInt(pos++, numbers[i]);
+                        pstmt.setInt(pos++, numbers[i]);
+                    }
+
+                    System.out.println("생성된 쿼리문:");
+                    System.out.println(pstmt);
+                    rs = pstmt.executeQuery();
+
+                    // 이전에 있던 번호라면 다시 번호를 생성하고 아니라면 종료한다
+                    rs.next();
+                    if(rs.getInt(1) > 0){
+                        isChecked = false;
+                    }
                     close(rs, pstmt, null);
-                    continue lotto;
-                } else {
-                    try{pstmt.close();} catch (Exception e){}
-                    try{rs.close();} catch (Exception e){}
                 }
 
-                // 검증2 : 중복확률 제거 쿼리
-                sql = "select count(*) from  LOTTO where"
-                        + " (number_1="+numbers[0]+" and number_2="+numbers[1]+" and number_3="+numbers[2]+" and  (number_4="+numbers[3]+" or (number_4="+numbers[3]+" and  number_5="+numbers[4]+") or (number_4="+numbers[3]+" and  number_5="+numbers[4]+" and number_6="+numbers[5]+")))"
-                        + " or"
-                        + " (number_1="+numbers[0]+" and number_3="+numbers[2]+" and number_4="+numbers[3]+" and (number_5="+numbers[4]+" or (number_5="+numbers[4]+" and number_6="+numbers[5]+")))"
-                        + " or"
-                        + " (number_1="+numbers[0]+" and number_4="+numbers[3]+" and number_5="+numbers[4]+" and number_6="+numbers[5]+")"
-                        + " or"
-                        + " (number_2="+numbers[1]+" and number_3="+numbers[2]+" and number_4="+numbers[3]+" and (number_5="+numbers[4]+" or (number_5="+numbers[4]+" and number_6="+numbers[5]+")))"
-                        + " or"
-                        + " (number_3="+numbers[2]+" and number_4="+numbers[3]+" and number_5="+numbers[4]+" and number_6="+numbers[5]+")";
+                // 검증3 : 중복확률 제거 쿼리
+                if(isChecked){
+                    String sql = "select count(*) from game.lotto where"
+                            + " (number_1="+numbers[0]+" and number_2="+numbers[1]+" and number_3="+numbers[2]+")"
+                            + " or"
+                            + " (number_1="+numbers[0]+" and number_2="+numbers[1]+" and number_3="+numbers[2]+" and  (number_4="+numbers[3]+" or (number_4="+numbers[3]+" and  number_5="+numbers[4]+") or (number_4="+numbers[3]+" and  number_5="+numbers[4]+" and number_6="+numbers[5]+")))"
+                            + " or"
+                            + " (number_1="+numbers[0]+" and number_3="+numbers[2]+" and number_4="+numbers[3]+" and (number_5="+numbers[4]+" or (number_5="+numbers[4]+" and number_6="+numbers[5]+")))"
+                            + " or"
+                            + " (number_1="+numbers[0]+" and number_4="+numbers[3]+" and number_5="+numbers[4]+" and number_6="+numbers[5]+")"
+                            + " or"
+                            + " (number_2="+numbers[1]+" and number_3="+numbers[2]+" and number_4="+numbers[3]+" and (number_5="+numbers[4]+" or (number_5="+numbers[4]+" and number_6="+numbers[5]+")))"
+                            + " or"
+                            + " (number_3="+numbers[2]+" and number_4="+numbers[3]+" and number_5="+numbers[4]+" and number_6="+numbers[5]+")"
+                            + " or"
+                            + " (number_4="+numbers[3]+" and number_5="+numbers[4]+" and number_6="+numbers[5]+")";
 
-                System.out.println("생성된 쿼리문:");
-                System.out.println(sql);
+                    System.out.println("생성된 쿼리문:");
+                    System.out.println(sql);
 
-                pstmt = conn.prepareStatement(sql);
-                rs = pstmt.executeQuery();
+                    pstmt = conn.prepareStatement(sql);
+                    rs = pstmt.executeQuery();
 
-                // 적은 확률의 번호라면 다시 번호 생성
-                rs.next();
-                if(rs.getInt(1) > 0){
-                    close(rs, pstmt, null);
-                    continue lotto;
-                } else {
-                    break;
+                    // 적은 확률의 번호라면 다시 번호 생성
+                    rs.next();
+                    if(rs.getInt(1) > 0){
+                        isChecked = false;
+                        close(rs, pstmt, null);
+                    } else {
+                        break;
+                    }
                 }
-
             } catch (Exception e){
-                break;
+                throw e;
             } finally {
                 close(rs, pstmt, conn);
             }
@@ -114,7 +129,7 @@ public class SelectNumbers extends Context {
      * @return
      */
     private int[] createNumbers(){
-        int[] numbers = new int[6];
+        int[] numbers = new int[]{50, 50, 50, 50, 50, 50};
         // 번호 생성
         for (int i = 0; i < numbers.length; ) {
             // 숫자 생성
@@ -124,8 +139,9 @@ public class SelectNumbers extends Context {
 
             // 이전에 있었던 숫자인지 확인 후 없다면 추가
             int matchNumber = Arrays.binarySearch(numbers, number);
-            if(matchNumber < 0){
+            if (matchNumber < 0) {
                 numbers[i] = number;
+                Arrays.sort(numbers);
                 i++;
             }
         }
