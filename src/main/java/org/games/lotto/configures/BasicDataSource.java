@@ -2,9 +2,7 @@ package org.games.lotto.configures;
 
 import oracle.jdbc.driver.OracleDriver;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -55,5 +53,14 @@ public class BasicDataSource {
             }
         }
         return rs;
+    }
+
+    public static void close(ResultSet rs, PreparedStatement pstmt){
+        close(rs, pstmt, null);
+    }
+    public static void close(ResultSet rs, PreparedStatement pstmt, BasicConnection conn){
+        try{rs.close();} catch (Exception ex){}
+        try{pstmt.close();} catch (Exception ex){}
+        try{conn.close();} catch (Exception ex){}
     }
 }

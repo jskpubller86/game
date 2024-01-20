@@ -1,26 +1,29 @@
 package org.games.lotto;
 
-import oracle.jdbc.driver.OracleDriver;
-import org.games.lotto.select.SelectNumbers;
+import org.games.lotto.command.*;
+import org.games.lotto.command.constant.CommandConst;
 
-import java.sql.*;
-import java.util.Arrays;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 public class Main {
-//    static Connection conn = null;
-//    static PreparedStatement pstmt = null;
-//    static ResultSet rs = null;
-
+    static Map<String, Command> commands;
     public static void main(String[] args) {
-        try{
-            int[] numbers = new SelectNumbers().selectNumbers();
-            System.out.println(Arrays.toString(numbers));
-        } catch (Exception e){
-            e.printStackTrace();
+        // 명령어 연결 작업
+        commands = new HashMap<String, Command>();
+        commands.put(CommandConst.INSERT, new Add());
+        commands.put(CommandConst.SELECT, new Select());
+        commands.put(CommandConst.EXIT, new Exit());
+
+        CommandManager manager = new CommandManager().setCommands(commands);
+
+        while (true){
+            if(manager.excute()){
+                break;
+            }
         }
     }
+
+
 }
 
 
