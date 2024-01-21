@@ -21,7 +21,7 @@ public class CommandManager {
         try{
             excute(command);
         } catch (Exception ex){
-            System.out.println("명령어가 올바르지 않습니다.");
+            System.out.println("명령어 실행 중 오류가 발생했습니다.");
         } finally {
             if(CommandConst.EXIT.equalsIgnoreCase(command) ) {
                 return true;

@@ -10,7 +10,7 @@ import java.util.Scanner;
 
 public class Add implements Command {
 
-    public void execute(BasicConnection conn) throws SQLException {
+    public void execute(BasicConnection conn) throws Exception {
         Scanner in = new Scanner(System.in);
         int seq = 0;
         Integer round = null;
@@ -32,7 +32,7 @@ public class Add implements Command {
                     date = in.next("\\d{8}");
                     seq++;
                 } else {
-                    for (int i = seq-3; i < winNumbers.length; i++, seq++) {
+                    for (int i = seq-2; i < winNumbers.length; i++, seq++) {
                         if(i == winNumbers.length-1){
                             System.out.println("보너스 번호를 입력해주세요.");
                         } else {
@@ -41,20 +41,23 @@ public class Add implements Command {
 
                         winNumbers[i] = in.nextInt();
                     }
-                }
 
-                // 쿼리를 생성하고 실행한다.
-                String sql = "insert into game.lotto values (?,to_date(?, 'yyyymmdd'),?,?,?,?,?,?)";
-                PreparedStatement pstmt = conn.prepareStatement(sql);
-                pstmt.setInt(1, round);
-                pstmt.setString(2, date);
+                    // 쿼리를 생성하고 실행한다.
+                    String sql = "insert into game.lotto values (?,to_date(?, 'yyyymmdd'),?,?,?,?,?,?,?)";
+                    PreparedStatement pstmt = conn.prepareStatement(sql);
+                    pstmt.setInt(1, round);
+                    pstmt.setString(2, date);
 
-                for (int i = 0, j=3; i < winNumbers.length; i++, j++) {
-                    pstmt.setInt(j, winNumbers[i]);
+                    for (int i = 0, j=3; i < winNumbers.length; i++, j++) {
+                        pstmt.setInt(j, winNumbers[i]);
+                    }
+                    pstmt.executeUpdate();
+                    System.out.println("데이터를 저장했습니다.");
+                    break;
                 }
-                pstmt.executeUpdate();
-                break;
-            } catch (Exception ex){}
+            } catch (Exception ex){
+                throw ex;
+            }
         }
 
     }

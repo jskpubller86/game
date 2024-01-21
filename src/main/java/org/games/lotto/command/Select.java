@@ -62,7 +62,7 @@ public class Select implements Command {
         for (int i = 0; i < numbers.length; ) {
             // 숫자 생성
             Random random = new Random();
-            int number = random.nextInt(45);
+            int number = random.nextInt(45)+1;
 
             // 이전에 있었던 숫자인지 확인 후 없다면 추가
             int matchNumber = Arrays.binarySearch(numbers, number);
@@ -86,7 +86,7 @@ public class Select implements Command {
             temp+=num;
         }
 
-        if(60 < temp && temp < 210){
+        if(48 < temp && temp < 238){
             return true;
         } else {
             return false;
