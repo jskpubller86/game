@@ -37,9 +37,10 @@ public class Select implements Command {
 
                 // 검증3 : 중복확률 제거 쿼리
                 if(isChecked){
-                    if(true == checkPattern(numbers, conn, pstmt, rs)){
-                        break;
-                    }
+//                    if(!checkPattern(numbers, conn, pstmt, rs)){
+//                        break;
+//                    }
+                    break;
                 }
             } catch (Exception e){
                 throw e;
@@ -157,9 +158,9 @@ public class Select implements Command {
         BasicDataSource.close(rs, pstmt);
 
         if(cnt > 0){
-            return false;
-        } else {
             return true;
+        } else {
+            return false;
         }
     }
 
