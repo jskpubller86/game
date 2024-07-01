@@ -8,22 +8,15 @@ import java.util.*;
 public class Main {
     static Map<String, Command> commands;
     public static void main(String[] args) {
-        // 명령어 연결 작업
-        commands = new HashMap<String, Command>();
-        commands.put(CommandConst.INSERT, new Add());
-        commands.put(CommandConst.SELECT, new Select());
-        commands.put(CommandConst.EXIT, new Exit());
-
-        CommandManager manager = new CommandManager().setCommands(commands);
+        CommandManager manager = new CommandManager();
 
         while (true){
-            if(manager.excute()){
+            // 실행한 명령어가 종료이면 프로그램을 종료한다.
+            if(manager.excute() == CommandConst.EXIT){
                 break;
             }
         }
     }
-
-
 }
 
 

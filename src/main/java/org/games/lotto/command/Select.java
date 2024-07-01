@@ -9,18 +9,26 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Random;
 
+/**
+ * 로또 번호 선택 명령 클래스
+ * @author jskpubller86
+ */
 public class Select implements Command {
-    /**
-     * 로또 번호를 생성한다.
-     * @return 로또 번호
-     */
-    public void execute(BasicConnection conn) throws Exception{
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
+    private BasicConnection conn = null;
+    @Override
+    public void setConnection(BasicConnection conn){
+        this.conn = conn;
+    }
+
+
+    @Override
+    public void execute() throws Exception{
+        // 로또 번호 생성
         int[] numbers = null;
 
-        while (true){
-            boolean isChecked = false;
+        // 번호 6개가 모두 뽑힐 때까지 반복한다.
+        while (numbers == null){
+            boolean isValid = false;
             numbers = createNumbers();
             // 번호 검증
             try {
@@ -28,24 +36,20 @@ public class Select implements Command {
                 Arrays.sort(numbers);
 
                 // 검증1: 숫자의 합이 250 이하인가?
-                isChecked = checkRange(numbers);
-
-                // 검증2 : 기존의 1, 2등 당첨 번호인지 확인
-                if(isChecked){
-                    isChecked = checkDuplicatedWinNumbers(numbers, conn, pstmt, rs);
+                if(validateMinMax(numbers)){
+                    isValid = true;
                 }
 
-                // 검증3 : 중복확률 제거 쿼리
-                if(isChecked){
-//                    if(!checkPattern(numbers, conn, pstmt, rs)){
-//                        break;
-//                    }
-                    break;
+                // 검증2 : 기존의 1, 2등 당첨 번호인지 확인
+                if(isValid && !validateWinNumbers(numbers)){
+                    isValid = false;
+                }
+
+                if(!isValid){
+                    numbers = null;
                 }
             } catch (Exception e){
                 throw e;
-            } finally {
-                BasicDataSource.close(rs, pstmt, conn);
             }
         }
 
@@ -54,8 +58,9 @@ public class Select implements Command {
     }
 
     /**
-     * 숫자를 생성한다.
-     * @return
+     * 숫자를 생성하는 함수
+     * @return 6개의 숫자 배열
+     * @author jskpubller86
      */
     private int[] createNumbers(){
         int[] numbers = new int[]{50, 50, 50, 50, 50, 50};
@@ -77,14 +82,14 @@ public class Select implements Command {
     }
 
     /**
-     * 번호의 범위를 검증한다.
-     * @param numbers
-     * @return
+     * 번호 6개의 합을 최댓값과 최솟값으로 비교
+     * @param numbers 생성한 번호 6개
+     * @return 검토 결과
      */
-    private boolean checkRange(int[] numbers){
+    private boolean validateMinMax(int[] numbers){
         int temp = 0;
         for (int num :  numbers){
-            temp+=num;
+            temp += num;
         }
 
         if(48 < temp && temp < 238){
@@ -95,73 +100,37 @@ public class Select implements Command {
     }
 
     /**
-     * 1등 또는 2등 당첨번호인지 검증한다.
-     * @param numbers
-     * @param conn
-     * @param pstmt
-     * @param rs
-     * @return
+     * 1등 또는 2등 당첨 번호인지 검증하는 함수
+     * @param numbers 생성된 번호
+     * @return 검증 결과
      * @throws SQLException
+     * @author jskpubller86
      */
-    private boolean checkDuplicatedWinNumbers(int[] numbers, BasicConnection conn, PreparedStatement pstmt, ResultSet rs) throws SQLException {
-        String sql = "select count(*) from game.lotto where (number_1=? or bonus=?) and (number_2=? or bonus=?) and (number_3=? or bonus=?) and (number_4=? or bonus=?) and (number_5=? or bonus=?) and (number_6=? or bonus=?)";
-        pstmt = conn.prepareStatement(sql);
+    private boolean validateWinNumbers(int[] numbers) throws SQLException {
+        String sql = "select count(*) from game.lotto where (no1=? or bonus=?) and (no2=? or bonus=?) and (no3=? or bonus=?) and (no4=? or bonus=?) and (no5=? or bonus=?) and (no6=? or bonus=?)";
+        PreparedStatement pstmt = conn.prepareStatement(sql);
 
+        // 쿼리 조건에 생성된 번호를 대입
         int pos = 1;
         for (int i = 0; i < numbers.length; i++) {
             pstmt.setInt(pos++, numbers[i]);
             pstmt.setInt(pos++, numbers[i]);
         }
-        rs = pstmt.executeQuery();
+        ResultSet rs = pstmt.executeQuery();
 
-        // 이전에 있던 번호라면 다시 번호를 생성하고 아니라면 종료한다
+        // 이전에 있던 번호이면 true, 없는 번호이면 false를 반환한다.
+        boolean isValid = false;
         rs.next();
-        int cnt = rs.getInt(1);
-        BasicDataSource.close(rs, pstmt, null);
-
-        if(cnt > 0){
-            return false;
+        if(rs.getInt(1) > 0){
+            System.out.println("중복된 번호 : " + Arrays.toString(numbers));
+            isValid = false;
         } else {
-            return true;
+            System.out.println("유효한 번호 : " + Arrays.toString(numbers));
+            isValid = true;
         }
+        try{rs.close();} catch (SQLException ex){}
+        try{pstmt.close();} catch (SQLException ex){}
+
+        return isValid;
     }
-
-    /**
-     * 번호 패턴을 검증한다.
-     * @param numbers
-     * @param conn
-     * @param pstmt
-     * @param rs
-     * @return
-     * @throws SQLException
-     */
-    private boolean checkPattern(int[] numbers, BasicConnection conn, PreparedStatement pstmt, ResultSet rs) throws SQLException {
-        String sql = "select count(*) from game.lotto where"
-                + " (number_1="+numbers[0]+" and number_2="+numbers[1]+" and number_3="+numbers[2]+")"
-                + " or"
-                + " (number_1="+numbers[0]+" and number_3="+numbers[2]+" and number_4="+numbers[3]+" and number_5="+numbers[4]+")"
-                + " or"
-                + " (number_1="+numbers[0]+" and number_4="+numbers[3]+" and number_5="+numbers[4]+" and number_6="+numbers[5]+")"
-                + " or"
-                + " (number_2="+numbers[1]+" and number_3="+numbers[2]+" and number_4="+numbers[3]+" and number_5="+numbers[4]+")"
-                + " or"
-                + " (number_3="+numbers[2]+" and number_4="+numbers[3]+" and number_5="+numbers[4]+" and number_6="+numbers[5]+")"
-                + " or"
-                + " (number_4="+numbers[3]+" and number_5="+numbers[4]+" and number_6="+numbers[5]+")";
-
-        pstmt = conn.prepareStatement(sql);
-        rs = pstmt.executeQuery();
-
-        // 적은 확률의 번호라면 다시 번호 생성
-        rs.next();
-        int cnt = rs.getInt(1);
-        BasicDataSource.close(rs, pstmt);
-
-        if(cnt > 0){
-            return true;
-        } else {
-            return false;
-        }
-    }
-
 }
