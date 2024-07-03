@@ -1,7 +1,8 @@
-package org.games.lotto.command;
+package org.games.lotto;
 
-import org.games.lotto.configures.BasicConnection;
-import org.games.lotto.configures.BasicDataSource;
+import org.games.configure.data.BasicConnection;
+import org.games.configure.exceptions.InValidException;
+import org.games.configure.interfaces.Game;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -13,13 +14,13 @@ import java.util.Random;
  * 로또 번호 선택 명령 클래스
  * @author jskpubller86
  */
-public class Select implements Command {
+public class Lotto implements Game {
     private BasicConnection conn = null;
     @Override
-    public void setConnection(BasicConnection conn){
+    public Game setConnection(BasicConnection conn){
         this.conn = conn;
+        return this;
     }
-
 
     @Override
     public void execute() throws Exception{
@@ -36,18 +37,12 @@ public class Select implements Command {
                 Arrays.sort(numbers);
 
                 // 검증1: 숫자의 합이 250 이하인가?
-                if(validateMinMax(numbers)){
-                    isValid = true;
-                }
+                validateMinMax(numbers);
 
                 // 검증2 : 기존의 1, 2등 당첨 번호인지 확인
-                if(isValid && !validateWinNumbers(numbers)){
-                    isValid = false;
-                }
-
-                if(!isValid){
-                    numbers = null;
-                }
+                validateWinNumbers(numbers);
+            } catch (InValidException e){
+                numbers = null;
             } catch (Exception e){
                 throw e;
             }
@@ -63,12 +58,12 @@ public class Select implements Command {
      * @author jskpubller86
      */
     private int[] createNumbers(){
-        int[] numbers = new int[]{50, 50, 50, 50, 50, 50};
+        int[] numbers = new int[]{46, 50, 50, 50, 50, 50};
         // 번호 생성
         for (int i = 0; i < numbers.length; ) {
             // 숫자 생성
             Random random = new Random();
-            int number = random.nextInt(45)+1;
+            int number = random.nextInt(44)+1;
 
             // 이전에 있었던 숫자인지 확인 후 없다면 추가
             int matchNumber = Arrays.binarySearch(numbers, number);
@@ -84,18 +79,15 @@ public class Select implements Command {
     /**
      * 번호 6개의 합을 최댓값과 최솟값으로 비교
      * @param numbers 생성한 번호 6개
-     * @return 검토 결과
      */
-    private boolean validateMinMax(int[] numbers){
+    private void validateMinMax(int[] numbers) throws InValidException {
         int temp = 0;
         for (int num :  numbers){
             temp += num;
         }
 
-        if(48 < temp && temp < 238){
-            return true;
-        } else {
-            return false;
+        if(48 > temp || temp > 238){
+            throw new InValidException();
         }
     }
 
@@ -106,7 +98,7 @@ public class Select implements Command {
      * @throws SQLException
      * @author jskpubller86
      */
-    private boolean validateWinNumbers(int[] numbers) throws SQLException {
+    private void validateWinNumbers(int[] numbers) throws SQLException, InValidException {
         String sql = "select count(*) from game.lotto where (no1=? or bonus=?) and (no2=? or bonus=?) and (no3=? or bonus=?) and (no4=? or bonus=?) and (no5=? or bonus=?) and (no6=? or bonus=?)";
         PreparedStatement pstmt = conn.prepareStatement(sql);
 
@@ -119,18 +111,19 @@ public class Select implements Command {
         ResultSet rs = pstmt.executeQuery();
 
         // 이전에 있던 번호이면 true, 없는 번호이면 false를 반환한다.
-        boolean isValid = false;
         rs.next();
-        if(rs.getInt(1) > 0){
-            System.out.println("중복된 번호 : " + Arrays.toString(numbers));
-            isValid = false;
-        } else {
-            System.out.println("유효한 번호 : " + Arrays.toString(numbers));
-            isValid = true;
-        }
-        try{rs.close();} catch (SQLException ex){}
-        try{pstmt.close();} catch (SQLException ex){}
 
-        return isValid;
+        try{
+            if(rs.getInt(1) > 0){
+                System.out.println("중복된 번호 : " + Arrays.toString(numbers));
+                throw new InValidException();
+            } else {
+                System.out.println("유효한 번호 : " + Arrays.toString(numbers));
+            }
+        } finally {
+            // 데이터 관련된 객체들을 종료
+            try{rs.close();} catch (SQLException ex){}
+            try{pstmt.close();} catch (SQLException ex){}
+        }
     }
 }

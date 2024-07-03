@@ -1,11 +1,8 @@
-package org.games.lotto.configures;
+package org.games.configure.data;
 
 import oracle.jdbc.driver.OracleDriver;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * 데이터 커넥션을 관리하는 클래스
@@ -71,6 +68,4 @@ public class BasicDataSource {
         }
         return -1;
     }
-
-
 }

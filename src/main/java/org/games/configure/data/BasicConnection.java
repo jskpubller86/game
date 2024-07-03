@@ -1,14 +1,11 @@
-package org.games.lotto.configures;
+package org.games.configure.data;
 
-import javax.sql.DataSource;
-import javax.xml.crypto.Data;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
- * 데이터 커텍션을 종료하지 않고 데이터 소스에 반환하도록 하기 위해서 생성한 클래스
+ * 데이터 커텍션을 종료하지 않고 데이터 소스에 반환을 위해 생성한 클래스
  * @author jskpubller86
  */
 public class BasicConnection {
