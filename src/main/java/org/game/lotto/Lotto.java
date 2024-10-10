@@ -1,8 +1,8 @@
-package org.games.lotto;
+package org.game.lotto;
 
-import org.games.configure.data.BasicConnection;
-import org.games.configure.exceptions.InValidException;
-import org.games.configure.interfaces.Game;
+import org.game.configure.data.BasicConnection;
+import org.game.configure.exceptions.InValidException;
+import org.game.configure.interfaces.Game;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -24,22 +24,17 @@ public class Lotto implements Game {
 
     @Override
     public void execute() throws Exception{
-        // 로또 번호 생성
+        /**
+         * 1. 번호를 생성한다.
+         * 2. 1등 또는 2등 당첨번호인지 검증한다.
+         * 3. 검증을 통과하면 당첨번호를 확정한다.
+         */
         int[] numbers = null;
 
-        // 번호 6개가 모두 뽑힐 때까지 반복한다.
         while (numbers == null){
-            boolean isValid = false;
             numbers = createNumbers();
-            // 번호 검증
             try {
-                // 번호를 오름차순으로 정렬
                 Arrays.sort(numbers);
-
-                // 검증1: 숫자의 합이 250 이하인가?
-                validateMinMax(numbers);
-
-                // 검증2 : 기존의 1, 2등 당첨 번호인지 확인
                 validateWinNumbers(numbers);
             } catch (InValidException e){
                 numbers = null;
@@ -53,19 +48,20 @@ public class Lotto implements Game {
     }
 
     /**
-     * 숫자를 생성하는 함수
+     * 당첨번호를 생성하는 함수
      * @return 6개의 숫자 배열
      * @author jskpubller86
      */
     private int[] createNumbers(){
-        int[] numbers = new int[]{46, 50, 50, 50, 50, 50};
-        // 번호 생성
+        /**
+         * 1. 랜덤 숫자를 생성
+         */
+        int[] numbers = new int[]{0, 0, 0, 0, 0, 0};
+
         for (int i = 0; i < numbers.length; ) {
-            // 숫자 생성
             Random random = new Random();
             int number = random.nextInt(44)+1;
 
-            // 이전에 있었던 숫자인지 확인 후 없다면 추가
             int matchNumber = Arrays.binarySearch(numbers, number);
             if (matchNumber < 0) {
                 numbers[i] = number;
@@ -74,21 +70,6 @@ public class Lotto implements Game {
             }
         }
         return numbers;
-    }
-
-    /**
-     * 번호 6개의 합을 최댓값과 최솟값으로 비교
-     * @param numbers 생성한 번호 6개
-     */
-    private void validateMinMax(int[] numbers) throws InValidException {
-        int temp = 0;
-        for (int num :  numbers){
-            temp += num;
-        }
-
-        if(48 > temp || temp > 238){
-            throw new InValidException();
-        }
     }
 
     /**

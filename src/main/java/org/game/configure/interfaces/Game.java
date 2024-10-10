@@ -1,6 +1,6 @@
-package org.games.configure.interfaces;
+package org.game.configure.interfaces;
 
-import org.games.configure.data.BasicConnection;
+import org.game.configure.data.BasicConnection;
 
 /**
  * 게임 인터페이스

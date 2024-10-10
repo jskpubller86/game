@@ -1,4 +1,4 @@
-package org.games.configure.exceptions;
+package org.game.configure.exceptions;
 
 public class InValidException extends Exception {
     public InValidException(){

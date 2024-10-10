@@ -1,8 +1,8 @@
-package org.games.annuity;
+package org.game.annuity;
 
-import org.games.configure.data.BasicConnection;
-import org.games.configure.exceptions.InValidException;
-import org.games.configure.interfaces.Game;
+import org.game.configure.data.BasicConnection;
+import org.game.configure.exceptions.InValidException;
+import org.game.configure.interfaces.Game;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
