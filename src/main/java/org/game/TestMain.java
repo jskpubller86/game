@@ -2,14 +2,36 @@ package org.game;
 
 import org.game.configure.data.BasicConnection;
 import org.game.configure.data.BasicDataSource;
+import org.game.lotto.Lotto;
 
 import java.util.Arrays;
 
 public class TestMain {
     public static void main(String[] args) {
+        testRandomNumbers();
+    }
+
+    /**
+     * 랜덤 숫자 생성 검사
+     * @author jskpubller86
+     */
+    private static void testRandomNumbers(){
         /**
-         * 1. 커넥션을 두 개 생성한다.
-         * 2. 커넥션 2개는 사용 중이므로 커넥션 보관소에 커넥션이 없는 지 확인한다.
+         * 1. 랜덤한 숫자가 중복없이 6개가 만들어지는지 확인한다.
+         */
+        Lotto lotto = new Lotto();
+        System.out.println(Arrays.toString(lotto.createNumbers()));
+    }
+
+    /**
+     * 커넥션 연결 검사
+     * @author jskpubller86
+     */
+    private static void testConnection(){
+        /**
+         * 1. 커넥션을 생성한다.
+         * 2. 커넥션 보관소에 반환한다.
+         * 3. 보관소를 확인한다.
          */
         try {
             BasicDataSource ds = new BasicDataSource();
@@ -27,5 +49,6 @@ public class TestMain {
         } catch(Exception e){
             e.printStackTrace();
         }
+
     }
 }

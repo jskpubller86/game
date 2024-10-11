@@ -52,20 +52,22 @@ public class Lotto implements Game {
      * @return 6개의 숫자 배열
      * @author jskpubller86
      */
-    private int[] createNumbers(){
+    public int[] createNumbers(){
         /**
-         * 1. 랜덤 숫자를 생성
+         * 1. 숫자를 생성한다.
+         * 2. 기존에 만들어진 숫자가 있는지 찾아 본다.
+         * 3. 없다면 배열에 추가한다.
+         * 4. 있다면 다시 숫자를 생성한다.
          */
         int[] numbers = new int[]{0, 0, 0, 0, 0, 0};
 
         for (int i = 0; i < numbers.length; ) {
             Random random = new Random();
-            int number = random.nextInt(44)+1;
+            int n = random.nextInt(44)+1;
 
-            int matchNumber = Arrays.binarySearch(numbers, number);
+            int matchNumber = Arrays.binarySearch(numbers, n);
             if (matchNumber < 0) {
-                numbers[i] = number;
-                Arrays.sort(numbers);
+                numbers[i] = n;
                 i++;
             }
         }
