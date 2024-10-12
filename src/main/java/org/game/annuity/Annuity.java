@@ -10,7 +10,7 @@ import java.util.Arrays;
 import java.util.Random;
 
 /**
- * 로또 번호 선택 명령 클래스
+ * 연금복권 생성 클래스
  * @author jskpubller86
  */
 public class Annuity implements Game {
@@ -30,9 +30,7 @@ public class Annuity implements Game {
         // 번호 6개가 모두 뽑힐 때까지 반복한다.
         while (numbers == null){
             numbers = createNumbers();
-            // 번호 검증
             try {
-                // 검증1
                 validateWinNumbers(numbers);
             } catch (InValidException e){
                 numbers = null;
@@ -52,13 +50,11 @@ public class Annuity implements Game {
      */
     private String createNumbers(){
         int[] numbers = new int[]{0, 0, 0, 0, 0, 0};
-        // 번호 생성
         for (int i = 0; i < numbers.length; i++) {
-            // 숫자 생성
-            Random random = new Random();
-            int number = random.nextInt(9);
 
-            // 이전에 있었던 숫자인지 확인 후 없다면 추가
+            Random random = new Random();
+            int number = random.nextInt(10);
+
             numbers[i] = number;
         }
         return Arrays.toString(numbers);

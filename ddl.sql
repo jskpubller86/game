@@ -32,6 +32,7 @@ CREATE USER game IDENTIFIED BY 1234;
 SELECT * FROM all_users where username='GAME';
 
 alter USER game IDENTIFIED BY 1234;
+
 -- 권한 주기
 
 GRANT CREATE SESSION, Create any table TO game;

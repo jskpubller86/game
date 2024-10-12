@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Random;
+import java.util.Scanner;
 
 /**
  * 로또 번호 선택 명령 클래스
@@ -34,7 +35,6 @@ public class Lotto implements Game {
         while (numbers == null){
             numbers = createNumbers();
             try {
-                Arrays.sort(numbers);
                 validateWinNumbers(numbers);
             } catch (InValidException e){
                 numbers = null;
@@ -54,23 +54,35 @@ public class Lotto implements Game {
      */
     public int[] createNumbers(){
         /**
-         * 1. 숫자를 생성한다.
-         * 2. 기존에 만들어진 숫자가 있는지 찾아 본다.
-         * 3. 없다면 배열에 추가한다.
-         * 4. 있다면 다시 숫자를 생성한다.
+         * 1. 사용자로부터 첨가할 값을 받는다.
+         * 2. 숫자를 생성한다.
+         * 3. 기존에 만들어진 숫자가 있는지 찾아 본다.
+         * 4. 없다면 배열에 추가한다.
+         * 5. 있다면 다시 숫자를 생성한다.
+         * 6. 숫자 6개가 완성되면 오름차순으로 정렬한다.
          */
+
+        System.out.println("첨가할 값을 입력해주세요.");
+        Scanner in = new Scanner(System.in);
+        long salt = in.nextLong();
+
         int[] numbers = new int[]{0, 0, 0, 0, 0, 0};
 
-        for (int i = 0; i < numbers.length; ) {
-            Random random = new Random();
+        loop: for (int i = 0; i < numbers.length; ) {
+            Random random = new Random(salt + System.currentTimeMillis());
             int n = random.nextInt(44)+1;
 
-            int matchNumber = Arrays.binarySearch(numbers, n);
-            if (matchNumber < 0) {
-                numbers[i] = n;
-                i++;
+            for(int j = 0; j < numbers.length; j++){
+                if(numbers[j] == n){
+                    continue loop;
+                }
             }
+
+            numbers[i] = n;
+            i++;
         }
+
+        Arrays.sort(numbers);
         return numbers;
     }
 
@@ -85,7 +97,6 @@ public class Lotto implements Game {
         String sql = "select count(*) from game.lotto where (no1=? or bonus=?) and (no2=? or bonus=?) and (no3=? or bonus=?) and (no4=? or bonus=?) and (no5=? or bonus=?) and (no6=? or bonus=?)";
         PreparedStatement pstmt = conn.prepareStatement(sql);
 
-        // 쿼리 조건에 생성된 번호를 대입
         int pos = 1;
         for (int i = 0; i < numbers.length; i++) {
             pstmt.setInt(pos++, numbers[i]);
@@ -93,7 +104,6 @@ public class Lotto implements Game {
         }
         ResultSet rs = pstmt.executeQuery();
 
-        // 이전에 있던 번호이면 true, 없는 번호이면 false를 반환한다.
         rs.next();
 
         try{
